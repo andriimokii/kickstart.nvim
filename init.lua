@@ -190,26 +190,18 @@ require('lazy').setup({
   },
 
   {
-    -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    'catppuccin/nvim',
+    name = 'catppuccin',
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'catppuccin'
     end,
   },
 
   {
     -- Set lualine as statusline
     'nvim-lualine/lualine.nvim',
-    -- See `:help lualine.txt`
-    opts = {
-      options = {
-        icons_enabled = false,
-        theme = 'onedark',
-        component_separators = '|',
-        section_separators = '',
-      },
-    },
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
   },
 
   {
@@ -218,7 +210,11 @@ require('lazy').setup({
     -- Enable `lukas-reineke/indent-blankline.nvim`
     -- See `:help ibl`
     main = 'ibl',
-    opts = {},
+    opts = {
+      scope = {
+        enabled = false
+      },
+    },
   },
 
   -- "gc" to comment visual regions/lines
@@ -253,6 +249,16 @@ require('lazy').setup({
     },
     build = ':TSUpdate',
   },
+  {
+    'windwp/nvim-autopairs',
+    event = "InsertEnter",
+    config = true
+    -- use opts = {} for passing setup options
+    -- this is equalent to setup({}) function
+  },
+  {
+    'HiPhish/nvim-ts-rainbow2',
+  },
 
   -- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
   --       These are some example plugins that I've included in the kickstart repository.
@@ -272,6 +278,10 @@ require('lazy').setup({
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
+
+-- Show invisible chars
+vim.o.list = true -- invisible chars
+vim.o.listchars = 'space:·'
 
 -- Set highlight on search
 vim.o.hlsearch = false
@@ -426,12 +436,17 @@ vim.keymap.set('n', '<leader>sr', require('telescope.builtin').resume, { desc = 
 vim.defer_fn(function()
   require('nvim-treesitter.configs').setup {
     -- Add languages to be installed here that you want installed for treesitter
-    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash' },
+    ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'ruby' },
 
     -- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
-    auto_install = false,
+    auto_install = true,
 
     highlight = { enable = true },
+    rainbow = {
+      enable = true,
+      query = 'rainbow-parens',
+      strategy = require('ts-rainbow').strategy.global,
+    },
     indent = { enable = true },
     incremental_selection = {
       enable = true,
@@ -566,6 +581,8 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
+  -- rubocop = {},
+  -- solargraph = {},
   -- clangd = {},
   -- gopls = {},
   -- pyright = {},
@@ -658,6 +675,72 @@ cmp.setup {
     { name = 'luasnip' },
     { name = 'path' },
   },
+}
+
+-- Bubbles config for lualine
+-- Author: lokesh-krishna
+-- MIT license, see LICENSE for more details.
+
+-- stylua: ignore
+local colors = {
+  blue   = '#80a0ff',
+  cyan   = '#79dac8',
+  black  = '#080808',
+  white  = '#c6c6c6',
+  red    = '#ff5189',
+  violet = '#d183e8',
+  grey   = '#303030',
+  base   = '#1e1e2e',
+}
+
+local bubbles_theme = {
+  normal = {
+    a = { fg = colors.black, bg = colors.violet },
+    b = { fg = colors.white, bg = colors.grey },
+    c = { fg = colors.white, bg = colors.base },
+  },
+
+  insert = { a = { fg = colors.black, bg = colors.blue } },
+  visual = { a = { fg = colors.black, bg = colors.cyan } },
+  replace = { a = { fg = colors.black, bg = colors.red } },
+
+  inactive = {
+    a = { fg = colors.white, bg = colors.black },
+    b = { fg = colors.white, bg = colors.black },
+    c = { fg = colors.white, bg = colors.base },
+  },
+}
+
+-- Setup lualine 
+require('lualine').setup {
+  options = {
+    theme = bubbles_theme,
+    icons_enabled = false,
+    component_separators = '|',
+    section_separators = { left = '', right = '' },
+  },
+  sections = {
+    lualine_a = {
+      { 'mode', separator = { left = '' }, right_padding = 2 },
+    },
+    lualine_b = { 'filename', 'branch' },
+    lualine_c = {},
+    lualine_x = {},
+    lualine_y = { 'filetype', 'progress' },
+    lualine_z = {
+      { 'location', separator = { right = '' }, left_padding = 2 },
+    },
+  },
+  inactive_sections = {
+    lualine_a = { 'filename' },
+    lualine_b = {},
+    lualine_c = {},
+    lualine_x = {},
+    lualine_y = {},
+    lualine_z = { 'location' },
+  },
+  tabline = {},
+  extensions = {},
 }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
