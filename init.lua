@@ -76,6 +76,12 @@ require('lazy').setup({
   -- Detect tabstop and shiftwidth automatically
   'tpope/vim-sleuth',
 
+  -- "gc" to comment visual regions/lines
+  { 'numToStr/Comment.nvim', opts = {} },
+
+  -- Split pane management
+  { 'mrjones2014/smart-splits.nvim', opts = {} },
+
   -- NOTE: This is where your plugins related to LSP can be installed.
   --  The configuration is done below. Search for lspconfig to find it below.
   {
@@ -280,8 +286,8 @@ require('lazy').setup({
 -- NOTE: You can change these options as you wish!
 
 -- Show invisible chars
-vim.o.list = true -- invisible chars
-vim.o.listchars = 'space:·'
+-- vim.o.list = true -- invisible chars
+-- vim.o.listchars = 'space:·'
 
 -- Set highlight on search
 vim.o.hlsearch = false
@@ -339,6 +345,18 @@ vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Go to next diagnos
 vim.keymap.set('n', '<leader>e', vim.diagnostic.open_float, { desc = 'Open floating diagnostic message' })
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostics list' })
 
+-- Smart splits keymaps
+-- resizing splits
+vim.keymap.set('n', '<A-h>', require('smart-splits').resize_left,  { desc = 'Resize Pane Left' })
+vim.keymap.set('n', '<A-j>', require('smart-splits').resize_down,  { desc = 'Resize Pane Down' })
+vim.keymap.set('n', '<A-k>', require('smart-splits').resize_up,    { desc = 'Resize Pane Up' })
+vim.keymap.set('n', '<A-l>', require('smart-splits').resize_right, { desc = 'Resize Pane Right' })
+-- moving between splits
+vim.keymap.set('n', '<C-h>', require('smart-splits').move_cursor_left,  { desc = 'Move to Left Pane'  })
+vim.keymap.set('n', '<C-j>', require('smart-splits').move_cursor_down,  { desc = 'Move to Down Pane'  })
+vim.keymap.set('n', '<C-k>', require('smart-splits').move_cursor_up,    { desc = 'Move to Up Pane'    })
+vim.keymap.set('n', '<C-l>', require('smart-splits').move_cursor_right, { desc = 'Move to Right Pane' })
+
 -- [[ Highlight on yank ]]
 -- See `:help vim.highlight.on_yank()`
 local highlight_group = vim.api.nvim_create_augroup('YankHighlight', { clear = true })
@@ -354,6 +372,18 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 -- See `:help telescope` and `:help telescope.setup()`
 require('telescope').setup {
   defaults = {
+    -- path_display = "shorten",
+    path_display = function(opts, path)
+      local tail = require("telescope.utils").path_tail(path)
+      return string.format("%s (%s)", tail, path)
+    end,
+    layout_config = {
+      height = 0.99,
+      width = 0.99,
+      horizontal = {
+        preview_width = 120
+      }
+    },
     mappings = {
       i = {
         ['<C-u>'] = false,
@@ -533,7 +563,7 @@ local on_attach = function(_, bufnr)
 
   -- See `:help K` for why this keymap
   nmap('K', vim.lsp.buf.hover, 'Hover Documentation')
-  nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
+  -- nmap('<C-k>', vim.lsp.buf.signature_help, 'Signature Documentation')
 
   -- Lesser used LSP functionality
   nmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
@@ -682,66 +712,66 @@ cmp.setup {
 -- MIT license, see LICENSE for more details.
 
 -- stylua: ignore
-local colors = {
-  blue   = '#80a0ff',
-  cyan   = '#79dac8',
-  black  = '#080808',
-  white  = '#c6c6c6',
-  red    = '#ff5189',
-  violet = '#d183e8',
-  grey   = '#303030',
-  base   = '#1e1e2e',
-}
-
-local bubbles_theme = {
-  normal = {
-    a = { fg = colors.black, bg = colors.violet },
-    b = { fg = colors.white, bg = colors.grey },
-    c = { fg = colors.white, bg = colors.base },
-  },
-
-  insert = { a = { fg = colors.black, bg = colors.blue } },
-  visual = { a = { fg = colors.black, bg = colors.cyan } },
-  replace = { a = { fg = colors.black, bg = colors.red } },
-
-  inactive = {
-    a = { fg = colors.white, bg = colors.black },
-    b = { fg = colors.white, bg = colors.black },
-    c = { fg = colors.white, bg = colors.base },
-  },
-}
+-- local colors = {
+--   blue   = '#80a0ff',
+--   cyan   = '#79dac8',
+--   black  = '#080808',
+--   white  = '#c6c6c6',
+--   red    = '#ff5189',
+--   violet = '#d183e8',
+--   grey   = '#303030',
+--   base   = '#1e1e2e',
+-- }
+--
+-- local bubbles_theme = {
+--   normal = {
+--     a = { fg = colors.black, bg = colors.violet },
+--     b = { fg = colors.white, bg = colors.grey },
+--     c = { fg = colors.white, bg = colors.base },
+--   },
+--
+--   insert = { a = { fg = colors.black, bg = colors.blue } },
+--   visual = { a = { fg = colors.black, bg = colors.cyan } },
+--   replace = { a = { fg = colors.black, bg = colors.red } },
+--
+--   inactive = {
+--     a = { fg = colors.white, bg = colors.black },
+--     b = { fg = colors.white, bg = colors.black },
+--     c = { fg = colors.white, bg = colors.base },
+--   },
+-- }
 
 -- Setup lualine 
-require('lualine').setup {
-  options = {
-    theme = bubbles_theme,
-    icons_enabled = false,
-    component_separators = '|',
-    section_separators = { left = '', right = '' },
-  },
-  sections = {
-    lualine_a = {
-      { 'mode', separator = { left = '' }, right_padding = 2 },
-    },
-    lualine_b = { 'filename', 'branch' },
-    lualine_c = {},
-    lualine_x = {},
-    lualine_y = { 'filetype', 'progress' },
-    lualine_z = {
-      { 'location', separator = { right = '' }, left_padding = 2 },
-    },
-  },
-  inactive_sections = {
-    lualine_a = { 'filename' },
-    lualine_b = {},
-    lualine_c = {},
-    lualine_x = {},
-    lualine_y = {},
-    lualine_z = { 'location' },
-  },
-  tabline = {},
-  extensions = {},
-}
+-- require('lualine').setup {
+--   options = {
+--     theme = bubbles_theme,
+--     icons_enabled = true,
+--     component_separators = '|',
+--     section_separators = { left = '', right = '' },
+--   },
+--   sections = {
+--     lualine_a = {
+--       { 'mode', separator = { left = '' }, right_padding = 2 },
+--     },
+--     lualine_b = { { 'branch' }, { 'filename', path = 3 } },
+--     lualine_c = {},
+--     lualine_x = {},
+--     lualine_y = { 'filetype', 'progress' },
+--     lualine_z = {
+--       { 'location', separator = { right = '' }, left_padding = 2 },
+--     },
+--   },
+--   inactive_sections = {
+--     lualine_a = { { 'filename', path = 3 } },
+--     lualine_b = {},
+--     lualine_c = {},
+--     lualine_x = {},
+--     lualine_y = {},
+--     lualine_z = { 'location' },
+--   },
+--   tabline = {},
+--   extensions = {},
+-- }
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
